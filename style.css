@@ -186,3 +186,43 @@ footer a {
 footer a:hover {
     text-decoration: underline;
 }
+
+/* Review Action Buttons */
+.review-actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.review-actions button {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.review-actions .edit-btn {
+    color: #4B0082;
+}
+
+.review-actions .edit-btn:hover {
+    background-color: #f0e6f8;
+    border-color: #4B0082;
+}
+
+.review-actions .delete-btn {
+    color: #dc3545;
+}
+
+.review-actions .delete-btn:hover {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
