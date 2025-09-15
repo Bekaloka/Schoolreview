@@ -2,10 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
     const form = document.getElementById('review-form');
     const submitButton = form.querySelector('button[type="submit"]');
-    const anonymousModeCheckbox = document.getElementById('anonymous-mode');
-    const studentNameInput = document.getElementById('student-name');
-    const stars = document.querySelectorAll('.star-rating .star');
-    const ratingInput = document.getElementById('rating');
+    // ... (rest of the elements are the same)
     const reviewsContainer = document.getElementById('reviews-container');
     const loaderOverlay = document.getElementById('loader-overlay');
     const paginationContainer = document.getElementById('pagination-container');
@@ -21,22 +18,33 @@ document.addEventListener('DOMContentLoaded', () => {
         'cache-control': 'no-cache'
     };
 
-    // --- State for Pagination & Filtering ---
+    // --- State for Pagination, Filtering & Anti-Spam ---
     let allReviews = [];
     let currentPage = 1;
     const reviewsPerPage = 5;
     let currentFilter = 'all';
+    const SUBMISSION_COOLDOWN = 60000; // 60 seconds
 
-    // --- Loader Functions ---
+    // --- Helper Functions ---
     const showLoader = () => loaderOverlay.classList.add('visible');
     const hideLoader = () => loaderOverlay.classList.remove('visible');
+
+    const handleApiError = (error) => {
+        console.error(error);
+        let userMessage = 'Белгісіз қате пайда болды. Бетті жаңартып, қайталап көріңіз.';
+        if (error.message.includes('Failed to fetch')) {
+            userMessage = 'Серверге қосылу мүмкін болмады. Интернет қосылымыңызды тексеріп, қайталап көріңіз.';
+        } else {
+            userMessage = `Сервер қатесі: ${error.message}`;
+        }
+        alert(userMessage);
+    };
 
     // --- Profanity Filter ---
     const profanityWords = ['қотақ', 'сігейін', 'көт', 'жәлеп', 'долбаеб'];
     const containsProfanity = (text) => {
         if (!text) return false;
-        const lowerCaseText = text.toLowerCase();
-        return profanityWords.some(word => lowerCaseText.includes(word));
+        return profanityWords.some(word => text.toLowerCase().includes(word));
     };
 
     // --- Rendering & Pagination Logic ---
@@ -45,11 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         reviewsContainer.innerHTML = '';
         paginationContainer.innerHTML = '';
 
-        // Apply filter first
         const filteredReviews = allReviews.filter(review => {
-            if (currentFilter === 'all') {
-                return true;
-            }
+            if (currentFilter === 'all') return true;
             return String(review.rating) === currentFilter;
         });
 
@@ -64,8 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const paginatedReviews = filteredReviews.slice(startIndex, endIndex);
 
         paginatedReviews.forEach(review => {
-            const reviewCard = createReviewCard(review);
-            reviewsContainer.appendChild(reviewCard);
+            reviewsContainer.appendChild(createReviewCard(review));
         });
 
         renderPaginationControls(pageCount);
@@ -74,30 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderPaginationControls = (pageCount) => {
         if (pageCount <= 1) return;
 
-        const prevButton = document.createElement('button');
-        prevButton.textContent = '‹';
-        prevButton.classList.add('pagination-btn');
-        prevButton.disabled = currentPage === 1;
-        prevButton.addEventListener('click', () => renderPage(currentPage - 1));
-        paginationContainer.appendChild(prevButton);
-
+        const createButton = (text, pageNum, disabled = false) => {
+            const button = document.createElement('button');
+            button.textContent = text;
+            button.classList.add('pagination-btn');
+            button.disabled = disabled;
+            button.addEventListener('click', () => renderPage(pageNum));
+            return button;
+        };
+        paginationContainer.appendChild(createButton('‹', currentPage - 1, currentPage === 1));
         for (let i = 1; i <= pageCount; i++) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            pageButton.classList.add('pagination-btn');
-            if (i === currentPage) {
-                pageButton.classList.add('active');
-            }
-            pageButton.addEventListener('click', () => renderPage(i));
+            const pageButton = createButton(i, i);
+            if (i === currentPage) pageButton.classList.add('active');
             paginationContainer.appendChild(pageButton);
         }
-
-        const nextButton = document.createElement('button');
-        nextButton.textContent = '›';
-        nextButton.classList.add('pagination-btn');
-        nextButton.disabled = currentPage === pageCount;
-        nextButton.addEventListener('click', () => renderPage(currentPage + 1));
-        paginationContainer.appendChild(nextButton);
+        paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === pageCount));
     };
 
     // --- API Communication ---
@@ -105,19 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoader();
         try {
             const response = await fetch(API_URL, { headers: FETCH_HEADERS });
-            if (!response.ok) throw new Error('Серверден пікірлерді жүктеу сәтсіз аяқталды.');
+            if (!response.ok) throw new Error('Пікірлерді жүктеу кезінде қате пайда болды.');
 
             const reviews = await response.json();
-            if (Array.isArray(reviews)) {
-                allReviews = reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderPage(1);
-            } else {
-                allReviews = [];
-                renderPage(1);
-            }
+            allReviews = Array.isArray(reviews) ? reviews.sort((a, b) => new Date(b.date) - new Date(a.date)) : [];
+            renderPage(1);
         } catch (error) {
-            console.error(error);
-            alert(error.message);
+            handleApiError(error);
         } finally {
             hideLoader();
         }
@@ -126,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     ratingFilter.addEventListener('change', (e) => {
         currentFilter = e.target.value;
-        renderPage(1); // Go back to first page when filter changes
+        renderPage(1);
     });
 
     // --- Star Rating Logic ---
@@ -135,12 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
         stars.forEach(star => star.classList.toggle('selected', star.getAttribute('data-value') <= rating));
     };
     stars.forEach(star => {
-        star.addEventListener('click', () => {
-            currentRating = star.getAttribute('data-value');
-            ratingInput.value = currentRating;
-            updateStars();
-        });
-        star.addEventListener('mouseover', () => updateStars(star.getAttribute('data-value')));
+        star.addEventListener('click', () => { currentRating = star.dataset.value; ratingInput.value = currentRating; updateStars(); });
+        star.addEventListener('mouseover', () => updateStars(star.dataset.value));
         star.addEventListener('mouseout', () => updateStars());
     });
 
@@ -153,6 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Form Submission Logic (Create and Update) ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const lastSubmissionTime = localStorage.getItem('lastSubmissionTime');
+        if (lastSubmissionTime && (Date.now() - lastSubmissionTime < SUBMISSION_COOLDOWN)) {
+            const timeLeft = Math.ceil((SUBMISSION_COOLDOWN - (Date.now() - lastSubmissionTime)) / 1000);
+            alert(`Пікірді жиі жіберуге болмайды. ${timeLeft} секундтан кейін қайталап көріңіз.`);
+            return;
+        }
+
         submitButton.disabled = true;
         showLoader();
 
@@ -173,29 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const reviewData = {
-            name: studentNameInput.value,
-            class: document.getElementById('student-class').value,
-            subject: subject,
-            text: text,
-            rating: Number(ratingInput.value),
-        };
+        const reviewData = { name: studentNameInput.value, class: document.getElementById('student-class').value, subject, text, rating: Number(ratingInput.value) };
 
         try {
             let response;
             if (editingReviewId !== null) {
-                response = await fetch(`${API_URL}/${editingReviewId}`, {
-                    method: 'PATCH',
-                    headers: FETCH_HEADERS,
-                    body: JSON.stringify(reviewData),
-                });
+                response = await fetch(`${API_URL}/${editingReviewId}`, { method: 'PATCH', headers: FETCH_HEADERS, body: JSON.stringify(reviewData) });
             } else {
                 reviewData.date = new Date().toISOString();
-                response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: FETCH_HEADERS,
-                    body: JSON.stringify(reviewData),
-                });
+                response = await fetch(API_URL, { method: 'POST', headers: FETCH_HEADERS, body: JSON.stringify(reviewData) });
             }
 
             if (!response.ok) {
@@ -203,11 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
                  throw new Error(`Сервер қатесі: ${err.message || response.statusText}`);
             }
 
+            localStorage.setItem('lastSubmissionTime', Date.now());
             resetForm();
             await fetchAndRender();
         } catch (error) {
-            console.error(error);
-            alert(error.message);
+            handleApiError(error);
         } finally {
             submitButton.disabled = false;
             hideLoader();
@@ -262,15 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 showLoader();
                 target.disabled = true;
                 try {
-                    const response = await fetch(`${API_URL}/${reviewId}`, {
-                        method: 'DELETE',
-                        headers: FETCH_HEADERS
-                    });
+                    const response = await fetch(`${API_URL}/${reviewId}`, { method: 'DELETE', headers: FETCH_HEADERS });
                     if (!response.ok) throw new Error('Пікірді жою мүмкін болмады.');
                     await fetchAndRender();
                 } catch (error) {
-                    console.error(error);
-                    alert(error.message);
+                    handleApiError(error);
                     target.disabled = false;
                 } finally {
                     hideLoader();
@@ -299,8 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitButton.textContent = 'Өзгерісті сақтау';
                 form.scrollIntoView({ behavior: 'smooth' });
             } catch (error) {
-                console.error(error);
-                alert(error.message);
+                handleApiError(error);
             } finally {
                 hideLoader();
             }
