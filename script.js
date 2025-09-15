@@ -1,3 +1,25 @@
+// =================================================================================
+// ВАЖНОЕ ПРИМЕЧАНИЕ / IMPORTANT NOTE
+// =================================================================================
+// Бэкэнд этого приложения был изменен. Ранее оно использовало внешний сервер
+// (restdb.io), который перестал работать. Теперь все данные (отзывы) хранятся
+// локально в вашем браузере, используя технологию localStorage.
+//
+// Это означает, что:
+// - Ваши отзывы сохраняются только на вашем текущем компьютере и в вашем браузере.
+// - Вы не увидите отзывы, оставленные другими пользователями.
+// - Очистка данных браузера (кэша, localStorage) приведет к удалению всех отзывов.
+//
+// This application's backend has been modified. It previously used an external
+// server (restdb.io) which is no longer functional. All review data is now
+// stored locally in your browser using localStorage.
+//
+// This means:
+// - Your reviews are saved only on your current computer and in your current browser.
+// - You will not see reviews left by other people.
+// - Clearing your browser's data (cache, localStorage) will delete all reviews.
+// =================================================================================
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
     const form = document.getElementById('review-form');
@@ -7,19 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const stars = document.querySelectorAll('.star-rating .star');
     const ratingInput = document.getElementById('rating');
     const reviewsContainer = document.getElementById('reviews-container');
-    const loaderOverlay = document.getElementById('loader-overlay');
     const paginationContainer = document.getElementById('pagination-container');
     const ratingFilter = document.getElementById('rating-filter');
 
     let editingReviewId = null;
-    const API_URL = 'https://schoolreviews172-d66a.restdb.io/rest/reviews';
-    const API_KEY = 'f1719bd7fea04e3b221bf3b7a0ae3906bf6ca';
-
-    const FETCH_HEADERS = {
-        'Content-Type': 'application/json',
-        'x-apikey': API_KEY,
-        'cache-control': 'no-cache'
-    };
 
     // --- State for Pagination, Filtering & Anti-Spam ---
     let allReviews = [];
@@ -28,19 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilter = 'all';
     const SUBMISSION_COOLDOWN = 60000; // 60 seconds
 
-    // --- Helper Functions ---
-    const showLoader = () => loaderOverlay.classList.add('visible');
-    const hideLoader = () => loaderOverlay.classList.remove('visible');
+    // --- LocalStorage Logic ---
+    const STORAGE_KEY = 'schoolReviewsApp.reviews';
 
-    const handleApiError = (error) => {
-        console.error(error);
-        let userMessage = 'Белгісіз қате пайда болды. Бетті жаңартып, қайталап көріңіз.';
-        if (error.message.includes('Failed to fetch')) {
-            userMessage = 'Серверге қосылу мүмкін болмады. Интернет қосылымыңызды тексеріп, қайталап көріңіз.';
-        } else {
-            userMessage = `Сервер қатесі: ${error.message}`;
-        }
-        alert(userMessage);
+    const getReviews = () => {
+        const reviewsJson = localStorage.getItem(STORAGE_KEY);
+        return reviewsJson ? JSON.parse(reviewsJson) : [];
+    };
+
+    const saveReviews = (reviews) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
     };
 
     // --- Profanity Filter ---
@@ -103,21 +113,12 @@ document.addEventListener('DOMContentLoaded', () => {
         paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === pageCount));
     };
 
-    // --- API Communication ---
-    const fetchAndRender = async () => {
-        showLoader();
-        try {
-            const response = await fetch(API_URL, { headers: FETCH_HEADERS });
-            if (!response.ok) throw new Error('Пікірлерді жүктеу кезінде қате пайда болды.');
-
-            const reviews = await response.json();
-            allReviews = Array.isArray(reviews) ? reviews.sort((a, b) => new Date(b.date) - new Date(a.date)) : [];
-            renderPage(1);
-        } catch (error) {
-            handleApiError(error);
-        } finally {
-            hideLoader();
-        }
+    // --- App Initialization ---
+    const loadAndRender = () => {
+        allReviews = getReviews();
+        // Sort by date descending
+        allReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+        renderPage(1);
     };
 
     // --- Event Listeners ---
@@ -155,12 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         submitButton.disabled = true;
-        showLoader();
 
         if (ratingInput.value === '0') {
             alert('Баға беріңіз!');
             submitButton.disabled = false;
-            hideLoader();
             return;
         }
 
@@ -170,51 +169,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (containsProfanity(subject) || containsProfanity(text)) {
             alert('Орынсыз сөздерді қолдануға тыйым салынады!');
             submitButton.disabled = false;
-            hideLoader();
             return;
         }
 
         const reviewData = { name: studentNameInput.value, class: document.getElementById('student-class').value, subject, text, rating: Number(ratingInput.value) };
 
-        try {
-            let response;
-            let updatedReview;
+        allReviews = getReviews();
 
-            if (editingReviewId !== null) {
-                response = await fetch(`${API_URL}/${editingReviewId}`, { method: 'PATCH', headers: FETCH_HEADERS, body: JSON.stringify(reviewData) });
-            } else {
-                reviewData.date = new Date().toISOString();
-                response = await fetch(API_URL, { method: 'POST', headers: FETCH_HEADERS, body: JSON.stringify(reviewData) });
+        if (editingReviewId !== null) {
+            const index = allReviews.findIndex(r => r._id === editingReviewId);
+            if (index !== -1) {
+                // Preserve original date when editing
+                const originalDate = allReviews[index].date;
+                allReviews[index] = { ...reviewData, _id: editingReviewId, date: originalDate };
             }
-
-            if (!response.ok) {
-                 const err = await response.json();
-                 throw new Error(`Сервер қатесі: ${err.message || response.statusText}`);
-            }
-
-            updatedReview = await response.json();
-
-            // Optimistic UI Update
-            if (editingReviewId !== null) {
-                const index = allReviews.findIndex(r => r._id === editingReviewId);
-                if (index !== -1) allReviews[index] = updatedReview;
-            } else {
-                allReviews.unshift(updatedReview); // Add to the start
-            }
-            // No need to sort again if we unshift, but let's be safe
-            allReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            localStorage.setItem('lastSubmissionTime', Date.now());
-            resetForm();
-            // Render the current page (if editing) or the first page (if new)
-            renderPage(editingReviewId ? currentPage : 1);
-
-        } catch (error) {
-            handleApiError(error);
-        } finally {
-            submitButton.disabled = false;
-            hideLoader();
+        } else {
+            reviewData._id = Date.now().toString();
+            reviewData.date = new Date().toISOString();
+            allReviews.unshift(reviewData); // Add to the start
         }
+
+        allReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+        saveReviews(allReviews);
+
+        localStorage.setItem('lastSubmissionTime', Date.now());
+        resetForm();
+        renderPage(editingReviewId ? currentPage : 1);
+
+        submitButton.disabled = false;
     });
 
     // --- Form Reset Function ---
@@ -262,29 +244,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (target.classList.contains('btn-delete')) {
             if (confirm('Бұл пікірді жоюға сенімдісіз бе?')) {
-                showLoader();
-                target.disabled = true;
-                try {
-                    const response = await fetch(`${API_URL}/${reviewId}`, { method: 'DELETE', headers: FETCH_HEADERS });
-                    if (!response.ok) throw new Error('Пікірді жою мүмкін болмады.');
-                    // On delete, we must re-fetch to get the correct pagination
-                    await fetchAndRender();
-                } catch (error) {
-                    handleApiError(error);
-                    target.disabled = false;
-                } finally {
-                    hideLoader();
-                }
+                allReviews = getReviews();
+                const updatedReviews = allReviews.filter(r => r._id !== reviewId);
+                saveReviews(updatedReviews);
+                loadAndRender(); // Reload to update the view and pagination
             }
         }
 
         if (target.classList.contains('btn-edit')) {
-            showLoader();
-             try {
-                const response = await fetch(`${API_URL}/${reviewId}`, { headers: FETCH_HEADERS });
-                if (!response.ok) throw new Error('Өзгерту үшін пікірді жүктеу мүмкін болмады.');
-                const reviewToEdit = await response.json();
+            allReviews = getReviews();
+            const reviewToEdit = allReviews.find(r => r._id === reviewId);
 
+            if (reviewToEdit) {
                 studentNameInput.value = reviewToEdit.name;
                 document.getElementById('student-class').value = reviewToEdit.class;
                 document.getElementById('complaint-subject').value = reviewToEdit.subject;
@@ -298,14 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 editingReviewId = reviewToEdit._id;
                 submitButton.textContent = 'Өзгерісті сақтау';
                 form.scrollIntoView({ behavior: 'smooth' });
-            } catch (error) {
-                handleApiError(error);
-            } finally {
-                hideLoader();
             }
         }
     });
 
     // --- Initial Load ---
-    fetchAndRender();
+    loadAndRender();
 });
