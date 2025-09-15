@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>№172 Мектепке Пікірлер</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>№172 Мектепке Күлкілі Пікірлер</h1>
+    </header>
+
+    <main>
+        <section class="review-form-section">
+            <h2>Пікіріңізді қалдырыңыз</h2>
+            <form id="review-form">
+                <div class="form-group">
+                    <label for="name-input">Аты-жөніңіз:</label>
+                    <input type="text" id="name-input" required>
+                    <div class="anonymous-option">
+                        <input type="checkbox" id="anon-checkbox">
+                        <label for="anon-checkbox">Анонимді түрде жіберу</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="class-input">Сыныбыңыз:</label>
+                    <input type="text" id="class-input" placeholder="Мысалы: 9Ә" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="complaint-input">Шағым тақырыбы (макс. 20 таңба):</label>
+                    <input type="text" id="complaint-input" maxlength="20" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="review-textarea">Сіздің пікіріңіз:</label>
+                    <textarea id="review-textarea" rows="6" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Бағаңыз:</label>
+                    <div class="star-rating" id="star-rating">
+                        <span class="star" data-value="1">&#9733;</span>
+                        <span class="star" data-value="2">&#9733;</span>
+                        <span class="star" data-value="3">&#9733;</span>
+                        <span class="star" data-value="4">&#9733;</span>
+                        <span class="star" data-value="5">&#9733;</span>
+                    </div>
+                </div>
+
+                <input type="hidden" id="rating-value" name="rating" value="0">
+
+                <button type="submit">Пікірді жіберу</button>
+            </form>
+        </section>
+
+        <section class="reviews-section">
+            <h2>Барлық пікірлер</h2>
+            <div id="reviews-container">
+                <!-- Пікірлер осында жүктеледі -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Байланыс үшін: <a href="mailto:animatorbeka2@gmail.com">animatorbeka2@gmail.com</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script type='text/javascript' src='//pl27650609.revenuecpmgate.com/12/75/c3/1275c3739803e387c19b7c8c2fae8596.js'></script>
+</body>
+</html>

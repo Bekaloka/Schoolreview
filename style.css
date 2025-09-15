@@ -1,0 +1,188 @@
+/* General Body Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+header {
+    background-color: #ffffff;
+    padding: 20px 0;
+    text-align: center;
+    border-bottom: 1px solid #dddfe2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    color: #4B0082; /* Indigo */
+    margin: 0;
+    font-size: 2em;
+}
+
+/* Main Content */
+main {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Section */
+.review-form-section h2, .reviews-section h2 {
+    color: #4B0082;
+    border-bottom: 2px solid #e7e7e7;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dddfe2;
+    border-radius: 6px;
+    box-sizing: border-box; /* Important for padding and width */
+    font-size: 1em;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4B0082;
+    box-shadow: 0 0 0 2px #e7eaf3;
+}
+
+.anonymous-option {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.anonymous-option label {
+    margin-bottom: 0;
+    margin-left: 8px;
+    font-weight: normal;
+}
+
+button[type="submit"] {
+    background-color: #4B0082;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+button[type="submit"]:hover {
+    background-color: #3a006a;
+}
+
+/* Star Rating */
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse; /* To make hover effect work from left to right */
+    justify-content: flex-end;
+}
+
+.star {
+    font-size: 2.5em;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star:hover,
+.star:hover ~ .star,
+.star.selected,
+.star.selected ~ .star {
+    color: #ffc107;
+}
+
+
+/* Reviews Section */
+#reviews-container {
+    margin-top: 20px;
+}
+
+.review-card {
+    background-color: #f9f9f9;
+    border: 1px solid #e7e7e7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.review-card .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-card .review-author {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.review-card .review-author .class-info {
+    font-weight: normal;
+    color: #606770;
+    font-size: 0.9em;
+    margin-left: 8px;
+}
+
+.review-card .review-rating {
+    color: #ffc107;
+    font-size: 1.2em;
+}
+
+.review-card .review-complaint {
+    font-style: italic;
+    color: #606770;
+    margin-bottom: 15px;
+    border-left: 3px solid #4B0082;
+    padding-left: 10px;
+}
+
+.review-card .review-body {
+    font-size: 1em;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    color: #606770;
+    font-size: 0.9em;
+}
+
+footer a {
+    color: #4B0082;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
