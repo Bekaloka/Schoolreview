@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>№172 Гимназия - Пікірлер</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+    <div class="container">
+        <header>
+            <h1>№172 Мектеп Пікірлері</h1>
+            <p class="subtitle">Шындықты айтатын уақыт келді... (әзілмен, әрине)</p>
+        </header>
+
+        <main>
+            <section class="review-form-section">
+                <h2>Өз пікіріңді қалдыр</h2>
+                <form id="review-form">
+                    <div class="form-group">
+                        <label for="student-name">Аты-жөніңіз:</label>
+                        <input type="text" id="student-name" name="student-name" required>
+                        <div class="anonymous-check">
+                            <input type="checkbox" id="anonymous-mode" name="anonymous-mode">
+                            <label for="anonymous-mode">Жасырын қалу</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-class">Сыныбыңыз:</label>
+                        <input type="text" id="student-class" name="student-class" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="complaint-subject">Шағым тақырыбы (макс. 20 таңба):</label>
+                        <input type="text" id="complaint-subject" name="complaint-subject" maxlength="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="review-text">Пікіріңіз:</label>
+                        <textarea id="review-text" name="review-text" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Бағаңыз:</label>
+                        <div class="star-rating">
+                            <span class="star" data-value="1">&#9733;</span>
+                            <span class="star" data-value="2">&#9733;</span>
+                            <span class="star" data-value="3">&#9733;</span>
+                            <span class="star" data-value="4">&#9733;</span>
+                            <span class="star" data-value="5">&#9733;</span>
+                        </div>
+                        <input type="hidden" id="rating" name="rating" value="0">
+                    </div>
+                    <button type="submit">Пікірді жіберу</button>
+                </form>
+            </section>
+
+            <section class="reviews-section">
+                <h2>Барлық пікірлер</h2>
+                <div class="filter-controls">
+                    <label for="rating-filter">Рейтинг бойынша сүзу:</label>
+                    <select id="rating-filter">
+                        <option value="all">Барлығы</option>
+                        <option value="5">5 ★★★★★</option>
+                        <option value="4">4 ★★★★☆</option>
+                        <option value="3">3 ★★★☆☆</option>
+                        <option value="2">2 ★★☆☆☆</option>
+                        <option value="1">1 ★☆☆☆☆</option>
+                    </select>
+                </div>
+                <div id="reviews-container">
+                    <!-- Reviews will be rendered here by JavaScript -->
+                </div>
+                <div id="pagination-container">
+                    <!-- Pagination controls will be rendered here -->
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 №172 Мектеп оқушылары. Барлық құқықтар қорғалмаған.</p>
+        </footer>
+    </div>
+
+    <div class="about-developer">
+        <h3>Әзірлеуші туралы</h3>
+        <p>Автор - Жоламан Бекзат 7А класс.</p>
+        <p>Байланыс email - beka63305@gmail.com</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

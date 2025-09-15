@@ -1,0 +1,330 @@
+/* General Body Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f8ff; /* AliceBlue */
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+header {
+    text-align: center;
+    border-bottom: 2px dashed #4682b4; /* SteelBlue */
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    color: #4682b4;
+    font-size: 2.5em;
+    margin: 0;
+}
+
+header .subtitle {
+    color: #555;
+    font-size: 1.1em;
+    margin-top: 10px;
+}
+
+/* Form Section */
+.review-form-section h2 {
+    color: #4682b4;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#review-form .form-group {
+    margin-bottom: 20px;
+}
+
+#review-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#review-form input[type="text"],
+#review-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Important for padding */
+}
+
+#review-form textarea {
+    resize: vertical;
+}
+
+#review-form .anonymous-check {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#review-form .anonymous-check label {
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+#review-form button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #5cb85c; /* Bootstrap Success Green */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#review-form button:hover {
+    background-color: #4cae4c;
+}
+
+/* Star Rating */
+.star-rating {
+    font-size: 2em;
+    cursor: pointer;
+}
+
+.star {
+    color: #ddd;
+    margin-right: 5px;
+    transition: color 0.2s;
+}
+
+.star.selected,
+.star:hover,
+.star:hover ~ .star {
+    color: #f39c12; /* Orange */
+}
+
+.star:hover ~ .star {
+    color: #ddd; /* Reset color for stars after the hovered one */
+}
+
+
+/* Reviews Section */
+.filter-controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.filter-controls label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.filter-controls select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.reviews-section h2 {
+    color: #4682b4;
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+#reviews-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.review-card {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-left: 5px solid #4682b4;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.review-card .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-card .student-info {
+    font-weight: bold;
+}
+
+.review-card .review-rating {
+    font-size: 1.2em;
+    color: #f39c12;
+}
+
+.review-card .review-body h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.review-card .review-body p {
+    margin: 0;
+    white-space: pre-wrap; /* Preserves line breaks */
+}
+
+.review-card .review-date {
+    text-align: right;
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 15px;
+}
+
+.review-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.review-date {
+    font-size: 0.8em;
+    color: #888;
+}
+
+.review-actions button {
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: 5px;
+    transition: opacity 0.3s;
+}
+
+.review-actions button:hover {
+    opacity: 0.8;
+}
+
+.btn-edit {
+    background-color: #f0ad4e; /* Bootstrap Warning Orange */
+}
+
+.btn-delete {
+    background-color: #d9534f; /* Bootstrap Danger Red */
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px dashed #4682b4;
+    color: #777;
+}
+
+/* About Developer Section */
+.about-developer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fafafa;
+    border-top: 1px solid #eee;
+    color: #555;
+}
+
+.about-developer h3 {
+    margin-top: 0;
+    color: #4682b4;
+}
+
+.about-developer p {
+    margin: 5px 0;
+}
+
+/* Loader Styles */
+#loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 0.5s, opacity 0.5s linear;
+}
+
+#loader-overlay.visible {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.5s linear;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #4682b4; /* SteelBlue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Pagination Styles */
+#pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.pagination-btn {
+    background-color: #fff;
+    border: 1px solid #4682b4;
+    color: #4682b4;
+    padding: 8px 14px;
+    margin: 0 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination-btn:hover {
+    background-color: #4682b4;
+    color: #fff;
+}
+
+.pagination-btn.active {
+    background-color: #4682b4;
+    color: #fff;
+    font-weight: bold;
+}
+
+.pagination-btn:disabled {
+    background-color: #e9e9e9;
+    color: #aaa;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
