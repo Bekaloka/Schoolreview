@@ -2,7 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
     const form = document.getElementById('review-form');
     const submitButton = form.querySelector('button[type="submit"]');
-    // ... (rest of the elements are the same)
+    const anonymousModeCheckbox = document.getElementById('anonymous-mode');
+    const studentNameInput = document.getElementById('student-name');
+    const stars = document.querySelectorAll('.star-rating .star');
+    const ratingInput = document.getElementById('rating');
     const reviewsContainer = document.getElementById('reviews-container');
     const loaderOverlay = document.getElementById('loader-overlay');
     const paginationContainer = document.getElementById('pagination-container');
@@ -64,8 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const pageCount = Math.ceil(filteredReviews.length / reviewsPerPage);
-        const startIndex = (page - 1) * reviewsPerPage;
-        const endIndex = page * reviewsPerPage;
+        // Ensure current page is valid after filtering
+        if (page > pageCount) {
+            currentPage = pageCount;
+        }
+
+        const startIndex = (currentPage - 1) * reviewsPerPage;
+        const endIndex = currentPage * reviewsPerPage;
         const paginatedReviews = filteredReviews.slice(startIndex, endIndex);
 
         paginatedReviews.forEach(review => {
@@ -170,6 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             let response;
+            let updatedReview;
+
             if (editingReviewId !== null) {
                 response = await fetch(`${API_URL}/${editingReviewId}`, { method: 'PATCH', headers: FETCH_HEADERS, body: JSON.stringify(reviewData) });
             } else {
@@ -182,9 +192,23 @@ document.addEventListener('DOMContentLoaded', () => {
                  throw new Error(`Сервер қатесі: ${err.message || response.statusText}`);
             }
 
+            updatedReview = await response.json();
+
+            // Optimistic UI Update
+            if (editingReviewId !== null) {
+                const index = allReviews.findIndex(r => r._id === editingReviewId);
+                if (index !== -1) allReviews[index] = updatedReview;
+            } else {
+                allReviews.unshift(updatedReview); // Add to the start
+            }
+            // No need to sort again if we unshift, but let's be safe
+            allReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+
             localStorage.setItem('lastSubmissionTime', Date.now());
             resetForm();
-            await fetchAndRender();
+            // Render the current page (if editing) or the first page (if new)
+            renderPage(editingReviewId ? currentPage : 1);
+
         } catch (error) {
             handleApiError(error);
         } finally {
@@ -243,6 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const response = await fetch(`${API_URL}/${reviewId}`, { method: 'DELETE', headers: FETCH_HEADERS });
                     if (!response.ok) throw new Error('Пікірді жою мүмкін болмады.');
+                    // On delete, we must re-fetch to get the correct pagination
                     await fetchAndRender();
                 } catch (error) {
                     handleApiError(error);
