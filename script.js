@@ -20,13 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- API Communication Functions ---
-    const getRemoteReviews = async () => {
+    const getRemoteDb = async () => {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error('Дерекқордан пікірлерді жүктеу мүмкін болмады.');
-        return await response.json(); // Returns the whole DB object, e.g., { reviews: [] }
+        const db = await response.json();
+        // Defensive check: Ensure db.reviews is an array.
+        if (!db || !Array.isArray(db.reviews)) {
+            return { reviews: [] }; // Return a valid, empty structure.
+        }
+        return db;
     };
 
-    const updateRemoteReviews = async (db) => {
+    const updateRemoteDb = async (db) => {
         const response = await fetch(API_URL, {
             method: 'POST', // npoint.io uses POST to update the entire bin
             headers: { 'Content-Type': 'application/json' },
@@ -37,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadAndRenderReviews = async () => {
         try {
-            const db = await getRemoteReviews();
+            const db = await getRemoteDb();
             reviewsContainer.innerHTML = '';
             const sortedReviews = db.reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
             sortedReviews.forEach(review => {
@@ -92,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const db = await getRemoteReviews();
+            const db = await getRemoteDb(); // The check is now inside getRemoteDb
             const reviewData = {
                 name: studentNameInput.value,
                 class: document.getElementById('student-class').value,
@@ -110,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 db.reviews.push({ ...reviewData, id: Date.now(), date: new Date().toISOString() });
             }
 
-            await updateRemoteReviews(db);
+            await updateRemoteDb(db);
             resetForm();
             await loadAndRenderReviews();
         } catch (error) {
@@ -168,9 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm('Бұл пікірді жоюға сенімдісіз бе?')) {
                 target.disabled = true;
                 try {
-                    const db = await getRemoteReviews();
+                    const db = await getRemoteDb(); // The check is now inside getRemoteDb
                     db.reviews = db.reviews.filter(r => r.id !== reviewId);
-                    await updateRemoteReviews(db);
+                    await updateRemoteDb(db);
                     await loadAndRenderReviews();
                 } catch (error) {
                     console.error(error);
@@ -181,21 +186,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (target.classList.contains('btn-edit')) {
-            const db = await getRemoteReviews();
-            const reviewToEdit = db.reviews.find(r => r.id === reviewId);
-            if (reviewToEdit) {
-                studentNameInput.value = reviewToEdit.name;
-                document.getElementById('student-class').value = reviewToEdit.class;
-                document.getElementById('complaint-subject').value = reviewToEdit.subject;
-                document.getElementById('review-text').value = reviewToEdit.text;
-                anonymousModeCheckbox.checked = reviewToEdit.name === 'Аноним';
-                studentNameInput.disabled = anonymousModeCheckbox.checked;
-                ratingInput.value = reviewToEdit.rating;
-                currentRating = reviewToEdit.rating;
-                updateStars();
-                editingReviewId = reviewId;
-                submitButton.textContent = 'Өзгерісті сақтау';
-                form.scrollIntoView({ behavior: 'smooth' });
+            try {
+                const db = await getRemoteDb(); // The check is now inside getRemoteDb
+                const reviewToEdit = db.reviews.find(r => r.id === reviewId);
+                if (reviewToEdit) {
+                    studentNameInput.value = reviewToEdit.name;
+                    document.getElementById('student-class').value = reviewToEdit.class;
+                    document.getElementById('complaint-subject').value = reviewToEdit.subject;
+                    document.getElementById('review-text').value = reviewToEdit.text;
+                    anonymousModeCheckbox.checked = reviewToEdit.name === 'Аноним';
+                    studentNameInput.disabled = anonymousModeCheckbox.checked;
+                    ratingInput.value = reviewToEdit.rating;
+                    currentRating = reviewToEdit.rating;
+                    updateStars();
+                    editingReviewId = reviewId;
+                    submitButton.textContent = 'Өзгерісті сақтау';
+                    form.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch(error) {
+                console.error(error);
+                alert(error.message);
             }
         }
     });
