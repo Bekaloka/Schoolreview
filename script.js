@@ -7,16 +7,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const stars = document.querySelectorAll('.star-rating .star');
     const ratingInput = document.getElementById('rating');
     const reviewsContainer = document.getElementById('reviews-container');
+    const loaderOverlay = document.getElementById('loader-overlay');
+    const paginationContainer = document.getElementById('pagination-container');
+    const ratingFilter = document.getElementById('rating-filter');
 
-    let editingReviewId = null; // This will now be the restdb.io '_id'
+    let editingReviewId = null;
     const API_URL = 'https://schoolreviews172-d66a.restdb.io/rest/reviews';
     const API_KEY = 'f1719bd7fea04e3b221bf3b7a0ae3906bf6ca';
 
     const FETCH_HEADERS = {
         'Content-Type': 'application/json',
         'x-apikey': API_KEY,
-        'cache-control': 'no-cache' // Important for restdb.io
+        'cache-control': 'no-cache'
     };
+
+    // --- State for Pagination & Filtering ---
+    let allReviews = [];
+    let currentPage = 1;
+    const reviewsPerPage = 5;
+    let currentFilter = 'all';
+
+    // --- Loader Functions ---
+    const showLoader = () => loaderOverlay.classList.add('visible');
+    const hideLoader = () => loaderOverlay.classList.remove('visible');
 
     // --- Profanity Filter ---
     const profanityWords = ['қотақ', 'сігейін', 'көт', 'жәлеп', 'долбаеб'];
@@ -26,27 +39,95 @@ document.addEventListener('DOMContentLoaded', () => {
         return profanityWords.some(word => lowerCaseText.includes(word));
     };
 
-    // --- API Communication & Rendering ---
-    const loadAndRenderReviews = async () => {
+    // --- Rendering & Pagination Logic ---
+    const renderPage = (page) => {
+        currentPage = page;
+        reviewsContainer.innerHTML = '';
+        paginationContainer.innerHTML = '';
+
+        // Apply filter first
+        const filteredReviews = allReviews.filter(review => {
+            if (currentFilter === 'all') {
+                return true;
+            }
+            return String(review.rating) === currentFilter;
+        });
+
+        if (filteredReviews.length === 0) {
+            reviewsContainer.innerHTML = '<p style="text-align: center;">Бұл фильтр бойынша пікірлер табылмады.</p>';
+            return;
+        }
+
+        const pageCount = Math.ceil(filteredReviews.length / reviewsPerPage);
+        const startIndex = (page - 1) * reviewsPerPage;
+        const endIndex = page * reviewsPerPage;
+        const paginatedReviews = filteredReviews.slice(startIndex, endIndex);
+
+        paginatedReviews.forEach(review => {
+            const reviewCard = createReviewCard(review);
+            reviewsContainer.appendChild(reviewCard);
+        });
+
+        renderPaginationControls(pageCount);
+    };
+
+    const renderPaginationControls = (pageCount) => {
+        if (pageCount <= 1) return;
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '‹';
+        prevButton.classList.add('pagination-btn');
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => renderPage(currentPage - 1));
+        paginationContainer.appendChild(prevButton);
+
+        for (let i = 1; i <= pageCount; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.classList.add('pagination-btn');
+            if (i === currentPage) {
+                pageButton.classList.add('active');
+            }
+            pageButton.addEventListener('click', () => renderPage(i));
+            paginationContainer.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '›';
+        nextButton.classList.add('pagination-btn');
+        nextButton.disabled = currentPage === pageCount;
+        nextButton.addEventListener('click', () => renderPage(currentPage + 1));
+        paginationContainer.appendChild(nextButton);
+    };
+
+    // --- API Communication ---
+    const fetchAndRender = async () => {
+        showLoader();
         try {
             const response = await fetch(API_URL, { headers: FETCH_HEADERS });
             if (!response.ok) throw new Error('Серверден пікірлерді жүктеу сәтсіз аяқталды.');
 
             const reviews = await response.json();
-            reviewsContainer.innerHTML = '';
-
             if (Array.isArray(reviews)) {
-                const sortedReviews = reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
-                sortedReviews.forEach(review => {
-                    const reviewCard = createReviewCard(review);
-                    reviewsContainer.appendChild(reviewCard);
-                });
+                allReviews = reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderPage(1);
+            } else {
+                allReviews = [];
+                renderPage(1);
             }
         } catch (error) {
             console.error(error);
             alert(error.message);
+        } finally {
+            hideLoader();
         }
     };
+
+    // --- Event Listeners ---
+    ratingFilter.addEventListener('change', (e) => {
+        currentFilter = e.target.value;
+        renderPage(1); // Go back to first page when filter changes
+    });
 
     // --- Star Rating Logic ---
     let currentRating = 0;
@@ -73,10 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         submitButton.disabled = true;
+        showLoader();
 
         if (ratingInput.value === '0') {
             alert('Баға беріңіз!');
             submitButton.disabled = false;
+            hideLoader();
             return;
         }
 
@@ -86,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (containsProfanity(subject) || containsProfanity(text)) {
             alert('Орынсыз сөздерді қолдануға тыйым салынады!');
             submitButton.disabled = false;
+            hideLoader();
             return;
         }
 
@@ -94,21 +178,19 @@ document.addEventListener('DOMContentLoaded', () => {
             class: document.getElementById('student-class').value,
             subject: subject,
             text: text,
-            rating: Number(ratingInput.value), // Ensure rating is a number
+            rating: Number(ratingInput.value),
         };
 
         try {
             let response;
             if (editingReviewId !== null) {
-                // UPDATE (PATCH) an existing review
                 response = await fetch(`${API_URL}/${editingReviewId}`, {
                     method: 'PATCH',
                     headers: FETCH_HEADERS,
                     body: JSON.stringify(reviewData),
                 });
             } else {
-                // CREATE (POST) a new review
-                reviewData.date = new Date().toISOString(); // Add date only on creation
+                reviewData.date = new Date().toISOString();
                 response = await fetch(API_URL, {
                     method: 'POST',
                     headers: FETCH_HEADERS,
@@ -122,12 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             resetForm();
-            await loadAndRenderReviews();
+            await fetchAndRender();
         } catch (error) {
             console.error(error);
             alert(error.message);
         } finally {
             submitButton.disabled = false;
+            hideLoader();
         }
     });
 
@@ -147,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function createReviewCard(review) {
         const card = document.createElement('div');
         card.classList.add('review-card');
-        card.dataset.id = review._id; // Use _id from restdb.io
+        card.dataset.id = review._id;
         const ratingStars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
         const formattedDate = new Date(review.date).toLocaleString('kk-KZ');
         card.innerHTML = `
@@ -172,11 +255,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = target.closest('.review-card');
         if (!card) return;
 
-        const reviewId = card.dataset.id; // This is the _id string
+        const reviewId = card.dataset.id;
 
-        // Handle Delete
         if (target.classList.contains('btn-delete')) {
             if (confirm('Бұл пікірді жоюға сенімдісіз бе?')) {
+                showLoader();
                 target.disabled = true;
                 try {
                     const response = await fetch(`${API_URL}/${reviewId}`, {
@@ -184,18 +267,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: FETCH_HEADERS
                     });
                     if (!response.ok) throw new Error('Пікірді жою мүмкін болмады.');
-                    await loadAndRenderReviews();
+                    await fetchAndRender();
                 } catch (error) {
                     console.error(error);
                     alert(error.message);
                     target.disabled = false;
+                } finally {
+                    hideLoader();
                 }
             }
         }
 
-        // Handle Edit
         if (target.classList.contains('btn-edit')) {
-            // We need to fetch the single record to make sure we have the latest data
+            showLoader();
              try {
                 const response = await fetch(`${API_URL}/${reviewId}`, { headers: FETCH_HEADERS });
                 if (!response.ok) throw new Error('Өзгерту үшін пікірді жүктеу мүмкін болмады.');
@@ -217,10 +301,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error(error);
                 alert(error.message);
+            } finally {
+                hideLoader();
             }
         }
     });
 
     // --- Initial Load ---
-    loadAndRenderReviews();
+    fetchAndRender();
 });

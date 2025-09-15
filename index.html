@@ -7,15 +7,18 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+    </div>
     <div class="container">
         <header>
-            <h1>№172 Гимназияға "жылы" лебіздер</h1>
-            <p class="subtitle">Мұнда сіз мектеп туралы шынайы пікіріңізді қалдыра аласыз (немесе жай ғана күле аласыз)</p>
+            <h1>№172 Мектеп Пікірлері</h1>
+            <p class="subtitle">Шындықты айтатын уақыт келді... (әзілмен, әрине)</p>
         </header>
 
         <main>
             <section class="review-form-section">
-                <h2>Пікір қалдыру</h2>
+                <h2>Өз пікіріңді қалдыр</h2>
                 <form id="review-form">
                     <div class="form-group">
                         <label for="student-name">Аты-жөніңіз:</label>
@@ -54,15 +57,35 @@
 
             <section class="reviews-section">
                 <h2>Барлық пікірлер</h2>
+                <div class="filter-controls">
+                    <label for="rating-filter">Рейтинг бойынша сүзу:</label>
+                    <select id="rating-filter">
+                        <option value="all">Барлығы</option>
+                        <option value="5">5 ★★★★★</option>
+                        <option value="4">4 ★★★★☆</option>
+                        <option value="3">3 ★★★☆☆</option>
+                        <option value="2">2 ★★☆☆☆</option>
+                        <option value="1">1 ★☆☆☆☆</option>
+                    </select>
+                </div>
                 <div id="reviews-container">
-                    <!-- Пікірлер осында шығады -->
+                    <!-- Reviews will be rendered here by JavaScript -->
+                </div>
+                <div id="pagination-container">
+                    <!-- Pagination controls will be rendered here -->
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>&copy; 2025 №172 Гимназияның "риза" оқушылары. Барлық құқықтар қорғалмаған.</p>
+            <p>&copy; 2025 №172 Мектеп оқушылары. Барлық құқықтар қорғалмаған.</p>
         </footer>
+    </div>
+
+    <div class="about-developer">
+        <h3>Әзірлеуші туралы</h3>
+        <p>Автор - Жоламан Бекзат 7А класс.</p>
+        <p>Контактный эмейл - beka63305@gmail.com</p>
     </div>
 
     <script src="script.js"></script>
